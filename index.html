@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Analyse Financière</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;800&family=Source+Sans+3:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #06090F;
+    --bg-subtle: #0B1120;
+    --surface: #111827;
+    --surface-raised: #1A2332;
+    --surface-hover: #1F2D40;
+    --border: #1E2D3D;
+    --border-light: #2A3A4E;
+    --primary: #3B82F6;
+    --primary-dark: #2563EB;
+    --primary-glow: #3B82F644;
+    --accent: #10B981;
+    --accent-glow: #10B98133;
+    --gold: #C9A84C;
+    --gold-light: #E2C56B;
+    --gold-glow: #C9A84C33;
+    --warn: #F59E0B;
+    --danger: #EF4444;
+    --text: #E8EDF5;
+    --text-secondary: #94A3B8;
+    --text-dim: #5A6B80;
+    --white: #FFFFFF;
+    --radius: 12px;
+    --radius-lg: 16px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Source Sans 3', -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::-webkit-scrollbar { width: 5px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 4px; }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 80% 50% at 20% 0%, rgba(59,130,246,0.06) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 40% at 80% 100%, rgba(201,168,76,0.04) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  @keyframes fadeUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+  @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+  @keyframes spin { to { transform:rotate(360deg); } }
+  @keyframes pulse { 0%,100% { opacity:0.4; } 50% { opacity:1; } }
+  @keyframes slideDown { from { opacity:0; transform:translateY(-8px); } to { opacity:1; transform:translateY(0); } }
+  .fade-up { animation: fadeUp 0.6s cubic-bezier(0.22,1,0.36,1) forwards; opacity:0; }
+  .fade-up-d1 { animation-delay: 0.08s; }
+  .fade-up-d2 { animation-delay: 0.16s; }
+  .fade-up-d3 { animation-delay: 0.24s; }
+  .fade-up-d4 { animation-delay: 0.32s; }
+  .fade-up-d5 { animation-delay: 0.4s; }
+
+  /* ─── Header ─── */
+  .header {
+    position: sticky; top: 0; z-index: 100;
+    backdrop-filter: blur(20px) saturate(1.4);
+    -webkit-backdrop-filter: blur(20px) saturate(1.4);
+    background: rgba(6,9,15,0.82);
+    border-bottom: 1px solid var(--border);
+    padding: 0 32px; height: 64px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .header-brand { display:flex; align-items:center; gap:14px; }
+  .header-logo {
+    width:40px; height:40px; border-radius:11px;
+    background: linear-gradient(135deg, var(--gold), var(--gold-light));
+    display:flex; align-items:center; justify-content:center;
+    box-shadow: 0 4px 16px var(--gold-glow), inset 0 1px 0 rgba(255,255,255,0.15);
+    position:relative; overflow:hidden;
+  }
+  .header-logo::after {
+    content:''; position:absolute; inset:0;
+    background: linear-gradient(135deg, transparent 40%, rgba(255,255,255,0.12) 100%);
+    pointer-events:none;
+  }
+  .header-logo svg { width:22px; height:22px; position:relative; z-index:1; }
+  .header-title {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size:18px; font-weight:700; color:var(--white); letter-spacing:0.3px;
+  }
+  .header-subtitle {
+    font-size:10px; color:var(--text-dim); letter-spacing:2.5px;
+    text-transform:uppercase; font-weight:600;
+  }
+  .header-actions { display:flex; gap:8px; }
+
+  /* ─── Buttons ─── */
+  .btn {
+    display:inline-flex; align-items:center; gap:7px;
+    font-family:'Source Sans 3',sans-serif; font-size:13px; font-weight:600;
+    border:none; border-radius:9px; cursor:pointer;
+    transition: all 0.25s cubic-bezier(0.22,1,0.36,1); white-space:nowrap;
+  }
+  .btn-primary {
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    color:var(--white); padding:14px 32px; font-size:15px;
+    box-shadow: 0 4px 20px var(--primary-glow); border-radius:var(--radius);
+  }
+  .btn-primary:hover:not(:disabled) { transform:translateY(-2px); box-shadow:0 8px 32px rgba(59,130,246,0.35); }
+  .btn-primary:disabled { opacity:0.45; cursor:not-allowed; }
+  .btn-outline {
+    background:var(--surface); color:var(--text-secondary);
+    border:1px solid var(--border); padding:9px 16px; font-size:12.5px;
+  }
+  .btn-outline:hover { border-color:var(--text-dim); color:var(--text); background:var(--surface-raised); }
+  .btn-gold {
+    background: linear-gradient(135deg, var(--gold), var(--gold-light));
+    color:var(--bg); padding:13px 28px; font-size:14px; font-weight:700;
+    border-radius:var(--radius); box-shadow:0 4px 18px var(--gold-glow);
+  }
+  .btn-gold:hover { transform:translateY(-2px); box-shadow:0 8px 28px rgba(201,168,76,0.35); }
+
+  .container {
+    max-width:1120px; margin:0 auto; padding:36px 24px 80px;
+    position:relative; z-index:1;
+  }
+
+  /* ─── Upload ─── */
+  .upload-screen { max-width:660px; margin:0 auto; padding-top:40px; }
+  .upload-hero { text-align:center; margin-bottom:44px; }
+  .upload-hero h1 {
+    font-family:'Playfair Display',Georgia,serif; font-size:38px;
+    font-weight:700; color:var(--white); line-height:1.25; margin-bottom:16px;
+  }
+  .upload-hero h1 em { font-style:normal; color:var(--gold); }
+  .upload-hero p {
+    color:var(--text-secondary); font-size:15.5px; line-height:1.75;
+    max-width:480px; margin:0 auto;
+  }
+
+  .drop-zone {
+    border:2px dashed var(--border-light); border-radius:var(--radius-lg);
+    padding:52px 32px; text-align:center; cursor:pointer;
+    transition:all 0.3s; margin-bottom:20px; position:relative; overflow:hidden;
+  }
+  .drop-zone::before {
+    content:''; position:absolute; inset:0;
+    background:linear-gradient(135deg, rgba(59,130,246,0.03), rgba(201,168,76,0.02));
+    opacity:0; transition:opacity 0.3s;
+  }
+  .drop-zone:hover::before, .drop-zone.drag-over::before { opacity:1; }
+  .drop-zone:hover, .drop-zone.drag-over {
+    border-color:var(--primary); box-shadow:0 0 30px var(--primary-glow);
+  }
+  .drop-zone .icon { font-size:46px; margin-bottom:16px; opacity:0.6; position:relative; }
+  .drop-zone .label { font-size:16px; font-weight:600; color:var(--text); margin-bottom:6px; position:relative; }
+  .drop-zone .sub { font-size:13px; color:var(--text-dim); position:relative; }
+
+  .file-list { margin-bottom:24px; }
+  .file-item {
+    display:flex; align-items:center; justify-content:space-between;
+    background:var(--surface); border:1px solid var(--border);
+    border-radius:10px; padding:12px 16px; margin-bottom:6px;
+    animation:slideDown 0.3s ease;
+  }
+  .file-item-info { display:flex; align-items:center; gap:10px; }
+  .file-item-icon { font-size:20px; }
+  .file-item-name { font-size:14px; font-weight:500; color:var(--text); }
+  .file-item-size { font-size:11px; color:var(--text-dim); }
+  .file-remove {
+    background:none; border:none; color:var(--text-dim); cursor:pointer;
+    font-size:18px; padding:4px 8px; border-radius:6px; transition:all 0.2s;
+  }
+  .file-remove:hover { color:var(--danger); background:rgba(239,68,68,0.1); }
+
+  .error-msg {
+    background:rgba(239,68,68,0.08); border:1px solid rgba(239,68,68,0.2);
+    border-radius:10px; padding:14px 18px; margin-bottom:18px;
+    color:var(--danger); font-size:14px; animation:slideDown 0.3s ease;
+  }
+
+  /* ─── Loading ─── */
+  .loading-screen {
+    display:flex; flex-direction:column; align-items:center; gap:28px; padding:80px 20px;
+  }
+  .spinner-wrap { position:relative; width:68px; height:68px; }
+  .spinner-outer {
+    width:68px; height:68px; border:3px solid var(--border);
+    border-top-color:var(--primary); border-radius:50%; animation:spin 1s linear infinite;
+  }
+  .spinner-inner {
+    position:absolute; top:10px; left:10px; width:48px; height:48px;
+    border:3px solid var(--border); border-bottom-color:var(--gold);
+    border-radius:50%; animation:spin 1.6s linear infinite reverse;
+  }
+  .loading-text { color:var(--text-secondary); font-size:15px; animation:pulse 2.2s ease infinite; }
+  .loading-steps { display:flex; gap:32px; margin-top:8px; }
+  .loading-step {
+    display:flex; align-items:center; gap:8px; font-size:12px;
+    color:var(--text-dim); transition:color 0.5s;
+  }
+  .loading-step.active { color:var(--primary); }
+  .loading-step.done { color:var(--accent); }
+  .loading-step .dot {
+    width:8px; height:8px; border-radius:50%;
+    background:var(--text-dim); transition:all 0.5s;
+  }
+  .loading-step.active .dot { background:var(--primary); box-shadow:0 0 8px var(--primary-glow); }
+  .loading-step.done .dot { background:var(--accent); }
+
+  /* ─── Results ─── */
+  .results-header {
+    display:flex; justify-content:space-between; align-items:flex-start;
+    margin-bottom:32px; gap:20px; flex-wrap:wrap;
+  }
+  .results-meta-label {
+    font-size:11px; color:var(--text-dim); text-transform:uppercase;
+    letter-spacing:2.5px; margin-bottom:6px; font-weight:600;
+  }
+  .results-title {
+    font-family:'Playfair Display',Georgia,serif; font-size:30px;
+    font-weight:700; color:var(--white);
+  }
+  .score-badge { display:flex; align-items:center; gap:16px; }
+  .score-circle {
+    width:72px; height:72px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    font-size:27px; font-weight:800; color:var(--white);
+    font-family:'Playfair Display',Georgia,serif;
+  }
+  .score-label-top {
+    font-size:11px; color:var(--text-dim); text-transform:uppercase;
+    letter-spacing:1.5px; font-weight:600;
+  }
+  .score-label-text { font-size:17px; font-weight:600; color:var(--text); margin-top:2px; }
+
+  .card {
+    background:var(--surface); border:1px solid var(--border);
+    border-radius:var(--radius); padding:28px; margin-bottom:18px;
+    transition:border-color 0.3s;
+  }
+  .card:hover { border-color:var(--border-light); }
+  .card[data-accent="gold"]   { border-top:3px solid var(--gold); }
+  .card[data-accent="blue"]   { border-top:3px solid var(--primary); }
+  .card[data-accent="green"]  { border-top:3px solid var(--accent); }
+  .card[data-accent="warn"]   { border-top:3px solid var(--warn); }
+  .card[data-accent="lblue"]  { border-top:3px solid #60A5FA; }
+  .card-header { display:flex; align-items:center; gap:10px; margin-bottom:18px; }
+  .card-icon { font-size:19px; }
+  .card-title {
+    font-family:'Playfair Display',Georgia,serif; font-size:17px;
+    font-weight:700; color:var(--text); letter-spacing:0.3px;
+  }
+
+  .grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:18px; }
+  @media (max-width:768px) {
+    .grid-2 { grid-template-columns:1fr; }
+    .header { padding:0 16px; }
+    .container { padding:20px 14px 60px; }
+    .upload-hero h1 { font-size:28px; }
+    .results-header { flex-direction:column; }
+    .header-actions { flex-wrap:wrap; }
+    .ratios-grid { display:block !important; }
+    .ratios-head { display:none !important; }
+    .ratio-row { display:flex !important; flex-direction:column; gap:4px; padding:14px 16px !important; }
+    .loading-steps { flex-wrap:wrap; justify-content:center; }
+  }
+
+  .kpi-row { display:flex; flex-wrap:wrap; gap:10px; }
+  .kpi-pill {
+    flex:1 1 200px; min-width:180px; background:var(--surface-raised);
+    border:1px solid var(--border); border-radius:10px; padding:16px 18px;
+    transition:border-color 0.25s, transform 0.25s;
+  }
+  .kpi-pill:hover { border-color:var(--border-light); transform:translateY(-2px); }
+  .kpi-label {
+    font-size:10.5px; color:var(--text-dim); text-transform:uppercase;
+    letter-spacing:1.3px; font-weight:600; margin-bottom:6px;
+  }
+  .kpi-value {
+    font-size:21px; font-weight:800; color:var(--gold);
+    font-family:'Playfair Display',Georgia,serif;
+  }
+  .kpi-evolution { font-size:13px; font-weight:600; margin-top:4px; }
+  .kpi-evolution.pos { color:var(--accent); }
+  .kpi-evolution.neg { color:var(--danger); }
+  .kpi-comment { font-size:12px; color:var(--text-dim); margin-top:6px; line-height:1.5; }
+
+  .data-row {
+    display:flex; justify-content:space-between; align-items:center;
+    padding:9px 0; border-bottom:1px solid rgba(30,45,61,0.5); font-size:14px;
+  }
+  .data-row:last-child { border-bottom:none; }
+  .data-key { color:var(--text-secondary); text-transform:capitalize; }
+  .data-val {
+    color:var(--text); font-weight:600;
+    font-family:'JetBrains Mono',monospace; font-size:13px;
+  }
+  .data-comment {
+    color:var(--text-secondary); font-size:13px; line-height:1.7;
+    margin-top:14px; padding-top:12px; border-top:1px solid var(--border);
+  }
+
+  .ratios-grid {
+    display:grid; gap:1px; background:var(--border);
+    border-radius:10px; overflow:hidden;
+  }
+  .ratios-head {
+    display:grid; grid-template-columns:1.6fr 0.8fr 2.2fr 1fr;
+    padding:11px 16px; background:var(--surface-raised);
+    font-size:10.5px; font-weight:700; color:var(--text-dim);
+    text-transform:uppercase; letter-spacing:1px;
+  }
+  .ratio-row {
+    display:grid; grid-template-columns:1.6fr 0.8fr 2.2fr 1fr;
+    padding:13px 16px; background:var(--surface); font-size:13px;
+    transition:background 0.2s;
+  }
+  .ratio-row:hover { background:var(--surface-raised); }
+  .ratio-name { color:var(--text); font-weight:600; }
+  .ratio-val { color:var(--gold); font-weight:700; font-family:'JetBrains Mono',monospace; }
+  .ratio-interp { color:var(--text-secondary); line-height:1.5; }
+  .ratio-bench { color:var(--text-dim); font-size:12px; }
+
+  .list-item {
+    display:flex; gap:10px; padding:10px 0;
+    border-bottom:1px solid rgba(30,45,61,0.3);
+    font-size:14px; color:var(--text-secondary); line-height:1.6;
+  }
+  .list-item:last-child { border-bottom:none; }
+  .list-bullet { flex-shrink:0; font-size:12px; margin-top:3px; }
+
+  .reco-item {
+    display:flex; gap:14px; padding:14px 0;
+    border-bottom:1px solid rgba(30,45,61,0.3);
+  }
+  .reco-item:last-child { border-bottom:none; }
+  .reco-badge {
+    font-size:10px; font-weight:800; border-radius:6px; padding:4px 12px;
+    text-transform:uppercase; letter-spacing:0.8px; flex-shrink:0; align-self:flex-start;
+  }
+  .reco-badge.haute { color:var(--danger); background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.2); }
+  .reco-badge.moyenne { color:var(--warn); background:rgba(245,158,11,0.1); border:1px solid rgba(245,158,11,0.2); }
+  .reco-badge.basse { color:var(--accent); background:rgba(16,185,129,0.1); border:1px solid rgba(16,185,129,0.2); }
+  .reco-action { font-size:14px; color:var(--text); font-weight:500; line-height:1.5; }
+  .reco-impact { font-size:12px; color:var(--text-dim); margin-top:4px; }
+
+  .pptx-cta {
+    background:linear-gradient(135deg, var(--surface), var(--surface-raised));
+    border:1px solid rgba(201,168,76,0.2); border-radius:14px;
+    padding:28px 32px; display:flex; align-items:center;
+    justify-content:space-between; gap:20px; flex-wrap:wrap; margin-top:10px;
+  }
+  .pptx-cta-title {
+    font-family:'Playfair Display',Georgia,serif; font-size:17px;
+    font-weight:700; color:var(--white);
+  }
+  .pptx-cta-sub { font-size:13px; color:var(--text-secondary); margin-top:4px; }
+
+  .summary-text { color:var(--text-secondary); font-size:15px; line-height:1.85; }
+
+  .footer {
+    text-align:center; padding:28px 0; border-top:1px solid var(--border);
+    margin-top:60px; font-size:12px; color:var(--text-dim); letter-spacing:0.5px;
+  }
+
+  .toast {
+    position:fixed; bottom:32px; right:32px; background:var(--surface-raised);
+    border:1px solid var(--accent); border-radius:10px; padding:14px 22px;
+    color:var(--accent); font-size:14px; font-weight:600;
+    box-shadow:0 8px 32px rgba(0,0,0,0.5); z-index:200;
+    animation:slideDown 0.35s ease; display:none;
+  }
+  .toast.show { display:block; }
+  .hidden { display:none !important; }
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-brand">
+    <div class="header-logo">
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M3 17L6 13L10 16L15 9L21 14" stroke="#1a1207" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M15 9H21V14" stroke="#1a1207" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"/>
+        <circle cx="6" cy="13" r="1.5" fill="#1a1207" opacity="0.7"/>
+        <circle cx="10" cy="16" r="1.5" fill="#1a1207" opacity="0.7"/>
+        <circle cx="15" cy="9" r="1.5" fill="#1a1207"/>
+      </svg>
+    </div>
+    <div>
+      <div class="header-title">Analyse Financière</div>
+      <div class="header-subtitle">Intelligence Artificielle</div>
+    </div>
+  </div>
+  <div class="header-actions" id="headerActions" style="display:none;">
+    <button class="btn btn-outline" onclick="exportJSON()">💾 Exporter JSON</button>
+    <button class="btn btn-outline" onclick="copyForPptx()">📋 Copier pour PPTX</button>
+    <button class="btn btn-outline" onclick="resetApp()">🔄 Nouvelle analyse</button>
+  </div>
+</header>
+
+<div class="container">
+  <!-- Upload -->
+  <div id="uploadScreen" class="upload-screen">
+    <div class="upload-hero fade-up">
+      <h1>Analysez vos bilans<br><em>en profondeur</em></h1>
+      <p>Chargez un ou plusieurs bilans au format PDF. L'intelligence artificielle produira une analyse financière complète avec ratios, recommandations et synthèse professionnelle.</p>
+    </div>
+    <div class="drop-zone fade-up fade-up-d1" id="dropZone" onclick="document.getElementById('fileInput').click()">
+      <input type="file" id="fileInput" accept=".pdf" multiple hidden>
+      <div class="icon">📄</div>
+      <div class="label">Glissez vos PDF ici ou cliquez pour sélectionner</div>
+      <div class="sub">Bilans, comptes de résultat, annexes comptables, liasses fiscales…</div>
+    </div>
+    <div id="fileList" class="file-list"></div>
+    <div id="errorMsg" class="error-msg hidden"></div>
+    <button class="btn btn-primary fade-up fade-up-d2" id="analyzeBtn" style="width:100%" disabled onclick="analyzeDocuments()">
+      🔍 Lancer l'analyse
+    </button>
+  </div>
+
+  <!-- Loading -->
+  <div id="loadingScreen" class="loading-screen hidden">
+    <div class="spinner-wrap">
+      <div class="spinner-outer"></div>
+      <div class="spinner-inner"></div>
+    </div>
+    <div class="loading-text" id="loadingText">Préparation de l'analyse…</div>
+    <div class="loading-steps">
+      <div class="loading-step active" id="lstep1"><div class="dot"></div> Lecture PDF</div>
+      <div class="loading-step" id="lstep2"><div class="dot"></div> Extraction données</div>
+      <div class="loading-step" id="lstep3"><div class="dot"></div> Calcul ratios</div>
+      <div class="loading-step" id="lstep4"><div class="dot"></div> Synthèse</div>
+    </div>
+  </div>
+
+  <!-- Results -->
+  <div id="resultsScreen" class="hidden"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<footer class="footer">Analyse Financière — Propulsée par Claude AI · Anthropic</footer>
+
+<script>
+let files = [];
+let analysis = null;
+const API_URL = "https://api.anthropic.com/v1/messages";
+const MODEL = "claude-sonnet-4-20250514";
+
+const SYSTEM_PROMPT = `Tu es un expert-comptable et analyste financier senior avec 25 ans d'expérience. Tu analyses des bilans comptables et documents financiers de manière très détaillée et professionnelle.
+
+Tu dois produire une analyse EXHAUSTIVE au format JSON strict (sans markdown, sans backticks) avec cette structure exacte :
+
+{
+  "entreprise": "Nom de l'entreprise (ou 'Non identifié')",
+  "periode": "Période couverte",
+  "type_document": "Type de document analysé",
+  "resume_executif": "Un résumé exécutif de 3-5 phrases percutantes",
+  "chiffres_cles": [
+    {"label": "Nom de l'indicateur", "valeur": "Valeur formatée", "evolution": "+X% ou -X% ou N/A", "commentaire": "Bref commentaire"}
+  ],
+  "analyse_bilan": {
+    "actif": {
+      "total": "Montant",
+      "immobilisations": "Montant",
+      "actif_circulant": "Montant",
+      "tresorerie": "Montant",
+      "commentaire": "Analyse détaillée de la structure de l'actif"
+    },
+    "passif": {
+      "total": "Montant",
+      "capitaux_propres": "Montant",
+      "dettes_lt": "Montant",
+      "dettes_ct": "Montant",
+      "commentaire": "Analyse détaillée de la structure du passif"
+    }
+  },
+  "ratios_financiers": [
+    {"nom": "Nom du ratio", "valeur": "Valeur calculée", "interpretation": "Interprétation détaillée", "benchmark": "Norme sectorielle si connue"}
+  ],
+  "analyse_rentabilite": {
+    "ca": "Chiffre d'affaires",
+    "resultat_net": "Résultat net",
+    "marge_nette": "Marge nette en %",
+    "ebitda": "EBITDA si calculable",
+    "commentaire": "Analyse détaillée"
+  },
+  "analyse_tresorerie": {
+    "bfr": "Besoin en fonds de roulement",
+    "fr": "Fonds de roulement",
+    "tresorerie_nette": "Trésorerie nette",
+    "commentaire": "Analyse détaillée des flux"
+  },
+  "points_forts": ["Point fort 1", "Point fort 2"],
+  "points_vigilance": ["Point de vigilance 1"],
+  "recommandations": [
+    {"priorite": "Haute/Moyenne/Basse", "action": "Description de l'action recommandée", "impact": "Impact attendu"}
+  ],
+  "note_globale": "A+, A, B+, B, C+, C, D",
+  "synthese_finale": "Paragraphe de synthèse détaillé de 5-8 phrases"
+}
+
+Si des données sont manquantes dans le document, indique "Non disponible" et adapte ton analyse aux informations réellement présentes. Calcule tous les ratios possibles. Sois précis dans les chiffres. Réponds UNIQUEMENT avec le JSON, rien d'autre.`;
+
+// ─── File handling ───
+const dropZone = document.getElementById('dropZone');
+const fileInput = document.getElementById('fileInput');
+
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+dropZone.addEventListener('dragleave', e => { e.preventDefault(); dropZone.classList.remove('drag-over'); });
+dropZone.addEventListener('drop', e => {
+  e.preventDefault(); dropZone.classList.remove('drag-over');
+  const dropped = [...e.dataTransfer.files].filter(f => f.type === 'application/pdf');
+  if (dropped.length) { files.push(...dropped); renderFiles(); }
+});
+fileInput.addEventListener('change', e => {
+  const sel = [...e.target.files].filter(f => f.type === 'application/pdf');
+  if (sel.length) { files.push(...sel); renderFiles(); }
+  fileInput.value = '';
+});
+
+function renderFiles() {
+  const list = document.getElementById('fileList');
+  list.innerHTML = files.map((f, i) => `
+    <div class="file-item">
+      <div class="file-item-info">
+        <span class="file-item-icon">📑</span>
+        <div>
+          <div class="file-item-name">${esc(f.name)}</div>
+          <div class="file-item-size">${(f.size/1024/1024).toFixed(2)} Mo</div>
+        </div>
+      </div>
+      <button class="file-remove" onclick="removeFile(${i})">✕</button>
+    </div>`).join('');
+  const btn = document.getElementById('analyzeBtn');
+  btn.disabled = !files.length;
+  btn.textContent = files.length
+    ? `🔍 Lancer l'analyse (${files.length} document${files.length>1?'s':''})`
+    : "🔍 Lancer l'analyse";
+}
+
+function removeFile(i) { files.splice(i, 1); renderFiles(); }
+function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+function fileToBase64(file) {
+  return new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload = () => res(r.result.split(',')[1]);
+    r.onerror = rej;
+    r.readAsDataURL(file);
+  });
+}
+
+// ─── Loading steps ───
+let loadingInterval;
+function startLoadingSteps() {
+  const steps = ['lstep1','lstep2','lstep3','lstep4'];
+  const texts = [
+    'Lecture et extraction des documents PDF…',
+    'Identification des postes comptables…',
+    'Calcul des ratios et indicateurs financiers…',
+    'Rédaction de la synthèse et recommandations…'
+  ];
+  let cur = 0;
+  loadingInterval = setInterval(() => {
+    if (cur > 0) {
+      document.getElementById(steps[cur-1]).classList.remove('active');
+      document.getElementById(steps[cur-1]).classList.add('done');
+    }
+    if (cur < steps.length) {
+      document.getElementById(steps[cur]).classList.add('active');
+      document.getElementById('loadingText').textContent = texts[cur];
+      cur++;
+    } else clearInterval(loadingInterval);
+  }, 3500);
+}
+
+// ─── Analyze ───
+async function analyzeDocuments() {
+  if (!files.length) return;
+  showScreen('loading');
+  startLoadingSteps();
+  hideError();
+
+  try {
+    const contentParts = [];
+    for (const file of files) {
+      const b64 = await fileToBase64(file);
+      contentParts.push({ type: "document", source: { type: "base64", media_type: "application/pdf", data: b64 } });
+    }
+    contentParts.push({ type: "text", text: `Analyse ces ${files.length} document(s) financier(s) de manière exhaustive et professionnelle. Produis le JSON d'analyse complet.` });
+
+    const response = await fetch(API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ model: MODEL, max_tokens: 8000, system: SYSTEM_PROMPT, messages: [{ role: "user", content: contentParts }] })
+    });
+
+    if (!response.ok) {
+      const errData = await response.json().catch(() => ({}));
+      throw new Error(errData.error?.message || `Erreur API: ${response.status}`);
+    }
+
+    const data = await response.json();
+    const text = data.content.filter(b => b.type === 'text').map(b => b.text).join('');
+    analysis = JSON.parse(text.replace(/```json|```/g, '').trim());
+
+    clearInterval(loadingInterval);
+    renderResults();
+    showScreen('results');
+  } catch (err) {
+    console.error(err);
+    clearInterval(loadingInterval);
+    showError(err.message || "Une erreur est survenue lors de l'analyse.");
+    showScreen('upload');
+  }
+}
+
+// ─── Screens ───
+function showScreen(name) {
+  document.getElementById('uploadScreen').classList.toggle('hidden', name !== 'upload');
+  document.getElementById('loadingScreen').classList.toggle('hidden', name !== 'loading');
+  document.getElementById('resultsScreen').classList.toggle('hidden', name !== 'results');
+  document.getElementById('headerActions').style.display = name === 'results' ? 'flex' : 'none';
+  if (name === 'loading') {
+    ['lstep1','lstep2','lstep3','lstep4'].forEach(id => {
+      document.getElementById(id).classList.remove('active','done');
+    });
+  }
+}
+function showError(msg) { const el = document.getElementById('errorMsg'); el.textContent = '⚠️ ' + msg; el.classList.remove('hidden'); }
+function hideError() { document.getElementById('errorMsg').classList.add('hidden'); }
+
+// ─── Render Results ───
+function renderResults() {
+  const a = analysis;
+  const c = document.getElementById('resultsScreen');
+  const scoreMap = {
+    'A+': { bg:'#059669', label:'Excellente' }, 'A': { bg:'#10B981', label:'Très bonne' },
+    'B+': { bg:'#3B82F6', label:'Bonne' }, 'B': { bg:'#60A5FA', label:'Satisfaisante' },
+    'C+': { bg:'#F59E0B', label:'Correcte' }, 'C': { bg:'#EF4444', label:'Fragile' },
+    'D': { bg:'#991B1B', label:'Préoccupante' }
+  };
+  const si = scoreMap[a.note_globale] || { bg:'#5A6B80', label:'—' };
+  let h = '';
+
+  // Header
+  h += `<div class="results-header fade-up"><div>
+    <div class="results-meta-label">${esc(a.type_document||'Analyse financière')} — ${esc(a.periode||'')}</div>
+    <div class="results-title">${esc(a.entreprise||'Analyse Financière')}</div>
+  </div>${a.note_globale ? `<div class="score-badge">
+    <div class="score-circle" style="background:linear-gradient(135deg,${si.bg},${si.bg}88);box-shadow:0 0 24px ${si.bg}55">${esc(a.note_globale)}</div>
+    <div><div class="score-label-top">Santé financière</div><div class="score-label-text">${esc(si.label)}</div></div>
+  </div>`:''}</div>`;
+
+  // Résumé
+  h += `<div class="card fade-up fade-up-d1" data-accent="gold">
+    <div class="card-header"><span class="card-icon">📋</span><span class="card-title">Résumé Exécutif</span></div>
+    <p class="summary-text">${esc(a.resume_executif||'')}</p></div>`;
+
+  // KPI
+  if (a.chiffres_cles?.length) {
+    h += `<div class="card fade-up fade-up-d2" data-accent="blue">
+      <div class="card-header"><span class="card-icon">📈</span><span class="card-title">Chiffres Clés</span></div>
+      <div class="kpi-row">${a.chiffres_cles.map(k => {
+        const cls = k.evolution?.includes('+') ? 'pos' : k.evolution?.includes('-') ? 'neg' : '';
+        return `<div class="kpi-pill"><div class="kpi-label">${esc(k.label)}</div>
+          <div class="kpi-value">${esc(k.valeur)}</div>
+          ${k.evolution && k.evolution !== 'N/A' ? `<div class="kpi-evolution ${cls}">${esc(k.evolution)}</div>` : ''}
+          ${k.commentaire ? `<div class="kpi-comment">${esc(k.commentaire)}</div>` : ''}</div>`;
+      }).join('')}</div></div>`;
+  }
+
+  // Bilan
+  if (a.analyse_bilan) {
+    h += `<div class="grid-2 fade-up fade-up-d3">`;
+    if (a.analyse_bilan.actif) h += `<div class="card" data-accent="green"><div class="card-header"><span class="card-icon">🏦</span><span class="card-title">Actif</span></div>${dataRows(a.analyse_bilan.actif)}</div>`;
+    if (a.analyse_bilan.passif) h += `<div class="card" data-accent="warn"><div class="card-header"><span class="card-icon">📊</span><span class="card-title">Passif</span></div>${dataRows(a.analyse_bilan.passif)}</div>`;
+    h += `</div>`;
+  }
+
+  // Ratios
+  if (a.ratios_financiers?.length) {
+    h += `<div class="card fade-up fade-up-d4" data-accent="lblue">
+      <div class="card-header"><span class="card-icon">🧮</span><span class="card-title">Ratios Financiers</span></div>
+      <div class="ratios-grid"><div class="ratios-head"><span>Ratio</span><span>Valeur</span><span>Interprétation</span><span>Benchmark</span></div>
+      ${a.ratios_financiers.map(r => `<div class="ratio-row">
+        <span class="ratio-name">${esc(r.nom)}</span><span class="ratio-val">${esc(r.valeur)}</span>
+        <span class="ratio-interp">${esc(r.interpretation)}</span><span class="ratio-bench">${esc(r.benchmark||'—')}</span>
+      </div>`).join('')}</div></div>`;
+  }
+
+  // Rentabilité & Trésorerie
+  h += `<div class="grid-2 fade-up fade-up-d5">`;
+  if (a.analyse_rentabilite) h += `<div class="card" data-accent="green"><div class="card-header"><span class="card-icon">💰</span><span class="card-title">Analyse de Rentabilité</span></div>${dataRows(a.analyse_rentabilite)}</div>`;
+  if (a.analyse_tresorerie) h += `<div class="card" data-accent="lblue"><div class="card-header"><span class="card-icon">💧</span><span class="card-title">Analyse de Trésorerie</span></div>${dataRows(a.analyse_tresorerie)}</div>`;
+  h += `</div>`;
+
+  // Points forts / vigilance
+  h += `<div class="grid-2 fade-up">`;
+  if (a.points_forts?.length) {
+    h += `<div class="card" data-accent="green"><div class="card-header"><span class="card-icon">✅</span><span class="card-title">Points Forts</span></div>
+      ${a.points_forts.map(p => `<div class="list-item"><span class="list-bullet" style="color:var(--accent)">▸</span><span>${esc(p)}</span></div>`).join('')}</div>`;
+  }
+  if (a.points_vigilance?.length) {
+    h += `<div class="card" data-accent="warn"><div class="card-header"><span class="card-icon">⚠️</span><span class="card-title">Points de Vigilance</span></div>
+      ${a.points_vigilance.map(p => `<div class="list-item"><span class="list-bullet" style="color:var(--warn)">▸</span><span>${esc(p)}</span></div>`).join('')}</div>`;
+  }
+  h += `</div>`;
+
+  // Recommandations
+  if (a.recommandations?.length) {
+    h += `<div class="card fade-up" data-accent="blue"><div class="card-header"><span class="card-icon">🎯</span><span class="card-title">Recommandations</span></div>
+      ${a.recommandations.map(r => {
+        const cls = (r.priorite||'').toLowerCase();
+        return `<div class="reco-item"><span class="reco-badge ${cls}">${esc(r.priorite)}</span><div>
+          <div class="reco-action">${esc(r.action)}</div>
+          ${r.impact ? `<div class="reco-impact">Impact : ${esc(r.impact)}</div>` : ''}</div></div>`;
+      }).join('')}</div>`;
+  }
+
+  // Synthèse
+  if (a.synthese_finale) {
+    h += `<div class="card fade-up" data-accent="gold"><div class="card-header"><span class="card-icon">📝</span><span class="card-title">Synthèse Finale</span></div>
+      <p class="summary-text">${esc(a.synthese_finale)}</p></div>`;
+  }
+
+  // PPTX CTA
+  h += `<div class="pptx-cta fade-up"><div>
+    <div class="pptx-cta-title">Générer la présentation PowerPoint</div>
+    <div class="pptx-cta-sub">Transformez cette analyse en slides professionnelles prêtes à présenter</div>
+  </div><div style="display:flex;gap:10px;flex-wrap:wrap">
+    <button class="btn btn-gold" onclick="copyForPptx()">📋 Copier le prompt PPTX</button>
+    <button class="btn btn-outline" onclick="exportJSON()">💾 Exporter JSON</button>
+  </div></div>`;
+
+  c.innerHTML = h;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function dataRows(obj) {
+  let h = '';
+  for (const [k, v] of Object.entries(obj)) {
+    if (k === 'commentaire') continue;
+    h += `<div class="data-row"><span class="data-key">${esc(k.replace(/_/g,' '))}</span><span class="data-val">${esc(v)}</span></div>`;
+  }
+  if (obj.commentaire) h += `<div class="data-comment">${esc(obj.commentaire)}</div>`;
+  return h;
+}
+
+// ─── Export & Actions ───
+function exportJSON() {
+  if (!analysis) return;
+  const blob = new Blob([JSON.stringify(analysis,null,2)], { type:'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `analyse_${(analysis.entreprise||'bilan').replace(/\s+/g,'_')}.json`;
+  a.click(); URL.revokeObjectURL(url);
+  showToast('✅ Export JSON téléchargé');
+}
+
+function copyForPptx() {
+  if (!analysis) return;
+  const prompt = `Crée une présentation PowerPoint professionnelle (.pptx) à partir de cette analyse financière. Utilise un design élégant bleu marine et doré avec des graphiques et des slides variées.\n\n${JSON.stringify(analysis,null,2)}`;
+  navigator.clipboard.writeText(prompt).then(() => showToast('📋 Copié ! Collez dans Claude pour générer le PPTX'));
+}
+
+function resetApp() {
+  files = []; analysis = null;
+  document.getElementById('fileList').innerHTML = '';
+  document.getElementById('analyzeBtn').disabled = true;
+  document.getElementById('analyzeBtn').textContent = "🔍 Lancer l'analyse";
+  document.getElementById('resultsScreen').innerHTML = '';
+  hideError(); showScreen('upload');
+  window.scrollTo({ top:0, behavior:'smooth' });
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+showScreen('upload');
+</script>
+</body>
+</html>
